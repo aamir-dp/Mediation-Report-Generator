@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+  <body>
+    <p><strong>1.</strong> Select your CSV or TSV file:</p>
+    <input type="file" id="fileInput"
+           accept=".csv,text/csv,.tsv,text/tab-separated-values" />
+    <p style="margin-top:12px">
+      <strong>2.</strong> Enter a named‐range name (e.g. <code>data2025</code>):</p>
+    <input type="text" id="rangeName"
+           placeholder="Letters, numbers, underscore" style="width:100%" />
+    <p style="margin-top:12px">
+      <strong>3.</strong> Enter the mediation‐group filter text:</p>
+    <input type="text" id="filterText"
+           placeholder="e.g. T1 Vidma Rect Banner OPMC" style="width:100%" />
+    <div style="text-align:right;margin-top:16px">
+      <button id="importBtn" disabled>Import & Build</button>
+      <button onclick="google.script.host.close()">Cancel</button>
+    </div>
+    <script>
+      const fileInput   = document.getElementById('fileInput');
+      const rangeInput  = document.getElementById('rangeName');
+      const filterInput = document.getElementById('filterText');
+      const importBtn   = document.getElementById('importBtn');
+      let fileContent = '';
+
+      function tryEnable() {
+        importBtn.disabled = !(fileContent && rangeInput.value && filterInput.value);
+      }
+
+      fileInput.addEventListener('change', () => {
+        const file = fileInput.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = e => {
+          fileContent = e.target.result;
+          tryEnable();
+        };
+        reader.readAsText(file);
+      });
+
+      rangeInput.addEventListener('input', tryEnable);
+      filterInput.addEventListener('input', tryEnable);
+
+      importBtn.addEventListener('click', () => {
+        google.script.run
+          .withSuccessHandler(() => google.script.host.close())
+          .withFailureHandler(err => alert('Error: ' + err.message))
+          .importCsv(
+            fileContent,
+            rangeInput.value.trim(),
+            filterInput.value.trim()
+          );
+      });
+    </script>
+  </body>
+</html>
